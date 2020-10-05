@@ -6,7 +6,6 @@ class state_rook(state):
     players = ["1", "2"]
     opponent = {"1": "2", "2": "1"}
     x, y = 0, 0  # текущее положение фигуры
-    lastx, lasty = 0, 0  # значение смещения прошлого хода
 
     def __init__(self, value=None):
         if value:
@@ -27,14 +26,15 @@ class state_rook(state):
     def do_move(self, move):
         # для более простой отмены хода запишем в кортеж смещения по x и y и прибавим их к
         # текущим значениям переменных
-        self.lastx, self.lasty, player = move
-        self.x += self.lastx
-        self.y += self.lasty
+        x, y, player = move
+        self.x += x
+        self.y += y
         self.value[self.x, self.y] = player
 
-    def undo_move(self):
-        self.x -= self.lastx
-        self.y -= self.lasty
+    def undo_move(self, move):
+		x, y, _ = move
+        self.x -= x
+        self.y -= x
 
     def is_win(self, player):
         # для проверки достаточно, чтобы одна координата из осей была равна 8
@@ -67,6 +67,3 @@ class state_rook(state):
         else:
             # в противном случае выведем количество возможных ходов
             return len(self.get_moves(player))
-
-
-

@@ -19,7 +19,7 @@ class state:
         #'''Выполнение хода'''
         raise NotImplementedError
 
-    def undo_move(self):
+    def undo_move(self, move):
         #'''Отмена хода'''
         raise NotImplementedError
 
