@@ -5,7 +5,6 @@ class state_rook(state):
     infinity = 100
     players = ["1", "2"]
     opponent = {"1": "2", "2": "1"}
-    x, y = 0, 0  # текущее положение фигуры
 
     def __init__(self, value=None):
         if value:
@@ -35,6 +34,7 @@ class state_rook(state):
 		x, y, _ = move
         self.x -= x
         self.y -= x
+		self.value[self.x, self.y] = player
 
     def is_win(self, player):
         # для проверки достаточно, чтобы одна координата из осей была равна 8
@@ -53,7 +53,6 @@ class state_rook(state):
         for x in range(8 - self.x):
             for y in range(8 - self.y):
                 moves.append((self.x + x + 1, self.y + y + 1, player))
-
         return moves
 
     def score(self, player):
