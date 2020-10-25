@@ -1,4 +1,4 @@
-from giveaway import state_giveaway
+from checkers import state_giveaway
 # # from minimax import bestmove
 # from negmax import bestmove
 

@@ -8,7 +8,7 @@ class state_giveaway(state):
     #lastmove = (x1, y1, x2, y2, player)
 	#'''список игроков - крестик и нолик'''
 	players = ["W", "B"]
-	cheskers = {'W': ['W', 'WQ'], 'B': ['B', 'BQ'],}
+	#checkers = {'W': ['W', 'WQ'], 'B': ['B', 'BQ'],}
 
 	#'''противники'''
 	opponent = {"W":"B", "B":"W"}
@@ -73,37 +73,52 @@ class state_giveaway(state):
 	#вспомогательная функция для get_moves,
 	#проверим есть ли обязательные ходы и если их нет,
 	#то занесем все обычные
-	def checkSlot(self, lines, row, player, moves, eaten_figures, a, b):
+
+	def checkSlot(self, lines, row, moves, player, eaten_figures, a, b, last, first):
 		#проверим, существуют ли ячейки поля по диагонали
-		if(lines +  a >= 0 and row + b <= 7):
-			if (self.value[lines + a][row + b] == self.opponent[player]):
-				#проверим, можно ли съесть шашку(существует ли дальше поле)
-				#с последующей проверкой с помощью рекурсии
-				#ячейка должна как существовать, так и не являться съеденной
+		#ячейка должна как существовать, так и не являться съеденной
+		if(0 <= lines + a <= 7 and 0 <= row + b <= 7):
+			if(self.value[lines + a][row + b] == self.opponent[player]):
 				if([lines + a, row + b] not in eaten_figures):
-					if(lines + 2*a >= 0 and row + 2*b <= 7):
-						moves += [lines, row]
-						eaten_figures += [[lines + a, row + b]]
-						#записываем отдельно координаты последнего нахождения шашки
-						last = [lines + 2*a, row + 2*b]
-						#проверяем, есть ли ещё доступные ходы
-						potentialMoves, _ = self.mustHaveMoves(lines + 2*a, row + 2*b, player, moves, eaten_figures)
-						if(potentialMoves != []):
-							self.mustHaveMoves(lines + 2*a, row + 2*b, player, moves, eaten_figures)
-						else:
-							#делаем для того, чтобы добавлять список в конец хода
-							moves += last
-							moves += player
-							moves += [moves[-5:]]
-							del moves[-6:-1]
+					#проверим, можно ли съесть шашку(существует ли дальше поле)
+					#с последующей проверкой с помощью рекурсии
+					if(0 <= lines + 2*a <= 7 and 0 <= row + 2*b <= 7):
+						if(self.value[lines + 2*a][row + 2*b] == 0):
+							if(first == []):
+								first += [[lines, row]]
+							last = [[lines + 2*a, row + 2*b]]
+							eaten_figures += [[lines + a, row + b]]
+							#self.mustHaveMoves(lines + 2*a, row + 2*b, player, moves, eaten_figures, last, first)
+		# moves += first
+		# moves += last
+		# moves += player
+		return first, last, eaten_figures
+	'''ИСПОЛЬЗОВАТЬ ПОЛЯ КЛАССА ДЛЯ УПРОЩЕНИЯ МЕТОДОВ'''
+	def mustHaveMoves(self, lines, row, player, moves = [], eaten_figures = [], last = [], first = []):
+		currentMove = []
+		eatedFigure = []
+
+		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, 1, 1, last, first)
+		moves += finalFirst
+		moves += finalLast
+		eaten_figures += eatedFigure
+
+		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, 1, -1, last, first)
+		moves += finalFirst
+		moves += finalLast
+		eaten_figures += eatedFigure
+
+		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, -1, 1, last, first)
+		moves += finalFirst
+		moves += finalLast
+		eaten_figures += eatedFigure
+
+		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, -1, -1, last, first)
+		moves += finalFirst
+		moves += finalLast
+		eaten_figures += eatedFigure
 		return moves, eaten_figures
 
-	def mustHaveMoves(self, lines, row, player, moves = [], eaten_figures = []):
-		moves, eaten_figures += self.checkSlot(lines, row, player, moves, eaten_figures, 1, 1)
-		moves, eaten_figures += self.checkSlot(lines, row, player, moves, eaten_figures, 1, -1)
-		moves, eaten_figures += self.checkSlot(lines, row, player, moves, eaten_figures, -1, 1)
-		moves, eaten_figures += self.checkSlot(lines, row, player, moves, eaten_figures, -1, -1)
-		return moves, eaten_figures
 
 	def commonMoves(self, lines, row, player):
 		moves = []
@@ -135,17 +150,23 @@ class state_giveaway(state):
 		#получим список обязательных ходов для каждой шашки
 		#если есть обязательные ходы, то вернем их
 		moves = []
+		eaten_figures = []
 		for lines in range(8):
 			for row in range(8):
-				if self.value[lines][row] in cheskers[player]:
-					moves, eaten_figures += self.mustHaveMoves(lines, row, player)
+				if (self.value[lines][row] == player):
+					if(self.mustHaveMoves(lines, row, player) != []):
+						currentMove, eatedFigure =  self.mustHaveMoves(lines, row, player)
+						moves.append(currentMove)
+						eaten_figures.append(eatedFigure)
 		#если обязательных нет
 		#получим список обычных ходов
-		if(moves == []):
+		if(moves != []):
+			return moves, eaten_figures
+		else:
 			for lines in range(8):
 				for row in range(8):
-					if self.value[lines][row] in cheskers[player]:
-						moves += self.commonWhiteMoves(lines, row, player)
+					if self.value[lines][row] == player:
+						moves += self.commonMoves(lines, row, player)
 		return moves
 
 
