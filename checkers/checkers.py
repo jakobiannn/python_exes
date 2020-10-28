@@ -1,176 +1,131 @@
 from base import state
+from copy import deepcopy
 
 class state_giveaway(state):
 	#'''Значение бесконечности для оценочной функции'''
 	infinity = 100
-
-
-    #lastmove = (x1, y1, x2, y2, player)
-	#'''список игроков - крестик и нолик'''
-	players = ["W", "B"]
-	#checkers = {'W': ['W', 'WQ'], 'B': ['B', 'BQ'],}
-
+	players = {'W': ['W', 'WQ'], 'B': ['B', 'BQ'],}
 	#'''противники'''
-	opponent = {"W":"B", "B":"W"}
-	def __init__(self, value=None):
+	opponent = {"W":("B", "BQ"), "B":("W", "WQ")}
+	def __init__(self, field):
 		#'''Конструктор класса, инициализация полей'''
-		# если value==None, то генерируем
-		# пустое поле
-		if value:
-			self.value = value
-		else:
-            # иначе создаем готовое поле
-			self.value = field
+		self.value = field
 		print('Game is started!')
 
-	def do_move(self, move, eaten_figures = None):
-	# ход представляет собой кортеж
-	# (x1, y1, x2, y2, player)
-	# где
-	# - x1, y1 - начальные координаты шашки
-	# - x2, y2 - конечные координаты
-	# - player - игрок, который делает ход
-	# координаты отсчитываются от 0 до 7
-	# eaten_figures - список из списков с координатами съеденных фигур
-		x1, y1, x2, y2, player = move
-		self.value[x1][y1] = 0
-		self.value[x2][y2] = player
-		if eaten_figures != None:
-			for figure in eaten_figures:
-				x, y = figure
-				self.value[x][y] = 0
+	def do_move(self, field, move):
+		result = deepcopy(field)
+		for(row, col), _, new_state in move:
+			if(row == 0 and new_state == "W"):
+				result[row][col] = "WQ"
+			elif(row == 7 and new_state == "B"):
+				result[row][col] = "BQ"
+			else:
+				result[row][col] = new_state
+		return result
 
 
-	def undo_move(self, move, eaten_figures):
-		# ход представляет собой кортеж
-		# (row, col, player)
-		# где
-		# - row, col - координаты клетки,
-		#              в которую ставится символ
-		# - player - игрок, который делает ход
-		x1, y1, x2, y2, player = move
-		# при отмене хода мы ставим в ячейку
-		# пустое значение
-		self.value[x1][y1] = player
-		self.value[x2][y2] = 0
-		if eaten_figures != None:
-			for figure in eaten_figures:
-				x, y = figure
-				self.value[x][y] = opponent[player]
+	def undo_move(self, move):
+		for (row, col), cancel_state, _ in move:
+				self.value[row][col] = cancel_state
+		return self.value
 
 	def is_win(self, player):
 		#'''Проверка, что игрок player выиграл'''
+		opp = player[0]
 		enemyFigures = 0
 		for lines in self.value:
 			for row in lines:
-				if row == self.opponent[player]:
+				if(row == opp):
 					enemyFigures += 1
 		if enemyFigures == 0:
 			return True
 		return False
-	#def kingMoves() - для оценки возможных ходов дамки
 
 	#вспомогательная функция для get_moves,
 	#проверим есть ли обязательные ходы и если их нет,
 	#то занесем все обычные
-
-	def checkSlot(self, lines, row, moves, player, eaten_figures, a, b, last, first):
+	def append_move(self, field, moves, player, coord, a, b):
+		lines, row = coord
 		#проверим, существуют ли ячейки поля по диагонали
 		#ячейка должна как существовать, так и не являться съеденной
-		if(0 <= lines + a <= 7 and 0 <= row + b <= 7):
-			if(self.value[lines + a][row + b] == self.opponent[player]):
-				if([lines + a, row + b] not in eaten_figures):
+		if(0 <= lines + 2*a <= 7 and 0 <= row + 2*b <= 7):
+			if(field[lines + a][row + b] in self.opponent[player]):
+				if((lines + a, row + b) not in moves):
 					#проверим, можно ли съесть шашку(существует ли дальше поле)
-					#с последующей проверкой с помощью рекурсии
-					if(0 <= lines + 2*a <= 7 and 0 <= row + 2*b <= 7):
-						if(self.value[lines + 2*a][row + 2*b] == 0):
-							if(first == []):
-								first += [[lines, row]]
-							last = [[lines + 2*a, row + 2*b]]
-							eaten_figures += [[lines + a, row + b]]
-							#self.mustHaveMoves(lines + 2*a, row + 2*b, player, moves, eaten_figures, last, first)
-		# moves += first
-		# moves += last
-		# moves += player
-		return first, last, eaten_figures
-	'''ИСПОЛЬЗОВАТЬ ПОЛЯ КЛАССА ДЛЯ УПРОЩЕНИЯ МЕТОДОВ'''
-	def mustHaveMoves(self, lines, row, player, moves = [], eaten_figures = [], last = [], first = []):
-		currentMove = []
-		eatedFigure = []
+						if(field[lines + 2*a][row + 2*b] == 0):
+							move = []
+							move.append(((lines, row), player, '0'))
+							move.append(((lines+a, row+b), (lines+a, row+b), '0'))
+							move.append(((lines+a*2, row+b*2), '0', player))
+							moves.append(move)
 
-		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, 1, 1, last, first)
-		moves += finalFirst
-		moves += finalLast
-		eaten_figures += eatedFigure
-
-		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, 1, -1, last, first)
-		moves += finalFirst
-		moves += finalLast
-		eaten_figures += eatedFigure
-
-		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, -1, 1, last, first)
-		moves += finalFirst
-		moves += finalLast
-		eaten_figures += eatedFigure
-
-		finalFirst, finalLast, eatedFigure = self.checkSlot(lines, row, moves, player, eaten_figures, -1, -1, last, first)
-		moves += finalFirst
-		moves += finalLast
-		eaten_figures += eatedFigure
-		return moves, eaten_figures
-
-
-	def commonMoves(self, lines, row, player):
+	def mustHaveMoves(self, field, coord, player):
 		moves = []
-		#условие, что шашка не стоит в верхней строчке и левом/правом столбце
-		#аналогично для черных в нижней строчке и нижнем левом/правом
-		if(player == 'W'):
-			if(lines - 1 >= 0 and row + 1 <= 7):
-				if (self.value[lines - 1][row + 1] != player):
-						moves += [[lines, row, lines - 1, row + 1, player]]
-			#или левом столбце
-			if(lines - 1 <= 7 and row - 1 >= 0):
-				if (self.value[lines - 1][row - 1] != player):
-						moves += [[lines, row, lines - 1, row - 1, player]]
-		elif(player == 'B'):
-			if(lines + 1 >= 0 and row + 1 <= 7):
-				if (self.value[lines - 1][row + 1] != player):
-						moves += [[lines, row, lines + 1, row + 1, player]]
-			#или левом столбце
-			if(lines + 1 <= 7 and row - 1 >= 0):
-				if (self.value[lines - 1][row - 1] != player):
-						moves += [[lines, row, lines + 1, row - 1, player]]
+		self.append_move(field, moves, player, coord, -1, -1)
+		self.append_move(field, moves, player, coord,  1, -1)
+		self.append_move(field, moves, player, coord, -1,  1)
+		self.append_move(field, moves, player, coord,  1,  1)
+		return moves
+
+	def append_common_move(self, moves, coord, player, a, b):
+		lines, row = coord
+		if(0 <= lines + a <= 7 and 0 <= row + b <= 7):
+			if (self.value[lines + a][row + b] not in self.players[player]):
+				move = []
+				move.append(((lines, row), player,'0'))
+				move.append(((lines+a, row+b), '0', player))
+				moves.append(move)
+
+	def commonMoves(self, coord, player):
+		moves = []
+			#условие, что шашка не стоит в верхней строчке и левом/правом столбце
+			#аналогично для черных в нижней строчке и нижнем левом/правом
+		if(player == 'W' or player == 'WQ' or player == 'BQ'):
+			self.append_common_move(moves, coord, player, -1, 1)
+			self.append_common_move(moves, coord, player, -1, -1)
+				#или левом столбце
+		elif(player == 'B' or player == 'WQ' or player == 'BQ'):
+			self.append_common_move(moves, coord, player, 1, -1)
+			self.append_common_move(moves, coord, player, 1, 1)
 		return moves
 
 	def get_moves(self, player):
 		# если ситуация выигрышная или проигрышная
 		# то ходов нет
-		if self.is_win(player) or self.is_win(self.opponent[player]):
+		if (self.is_win(player) or self.is_win(self.opponent[player])):
 			return []
 		#получим список обязательных ходов для каждой шашки
 		#если есть обязательные ходы, то вернем их
 		moves = []
-		eaten_figures = []
 		for lines in range(8):
 			for row in range(8):
-				if (self.value[lines][row] == player):
-					if(self.mustHaveMoves(lines, row, player) != []):
-						currentMove, eatedFigure =  self.mustHaveMoves(lines, row, player)
-						moves.append(currentMove)
-						eaten_figures.append(eatedFigure)
+				if (self.value[lines][row] in self.players[player]):
+					current_move = []
+					current_move.extend(self.mustHaveMoves(self.value, (lines, row), player))
+					while current_move:
+						move = current_move.pop()
+						new_cell = move[-1][0]
+						copy_field = self.do_move(self.value, move)
+						new_moves = self.mustHaveMoves(copy_field, new_cell, player)
+
+						if new_moves:
+							for new_move in new_moves:
+								new_move1 = deepcopy(move)
+								new_move1.extend(new_move)
+								current_move.append(new_move1)
+						else:
+							moves.append(move)
 		#если обязательных нет
 		#получим список обычных ходов
 		if(moves != []):
-			return moves, eaten_figures
+			return moves
 		else:
 			for lines in range(8):
 				for row in range(8):
-					if self.value[lines][row] == player:
-						moves += self.commonMoves(lines, row, player)
+					if (self.value[lines][row] in self.players[player]):
+						if(self.commonMoves((lines, row), player) != []):
+							moves.extend(self.commonMoves((lines, row), player))
 		return moves
-
-
-
 
 	def score(self, player):
 		#'''Расчет оценочной функции'''
