@@ -126,6 +126,37 @@ class state_giveaway(state):
 						if(self.commonMoves((lines, row), self.value[lines][row]) != []):
 							moves.extend(self.commonMoves((lines, row), self.value[lines][row]))
 		return moves
+	''' Для оценочной функии воспользуемся следующими вспомогательными функицями
+		Разницы между количеством съеденных своих и чужих шашек
+		Разницы между количеством своих дамок и противника
+		Расстоянии шашек от первой линии противника (только тех, что еще не дамки)
+		Разницы в количестве возможных своих ходов и противника (заблокированные шашки) '''
+	def count_eaten(self, player):
+		enemyes = 0
+		for line in self.value:
+			for row in line:
+				if row in self.opponent[player]:
+					enemyes += 1
+		return 12 - enemyes
+
+	def queen(self, player):
+		Q = 0
+		for line in self.value:
+			for row in line:
+				if row == self.opponent[player][1]:
+					Q += 1
+		return Q
+
+	def zero_line(self, player):
+		for line in range(8):
+			for row in range(8):
+				if self.value[line][row] == "W":
+					return line
+				if self.value[line][row] == "B":
+					return 7 - line
+
+	def moves_value(self, player):
+		return len(self.get_moves(player))
 
 	def score(self, player):
 		'''Расчет оценочной функции'''
