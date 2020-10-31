@@ -4,9 +4,9 @@ from copy import deepcopy
 class state_giveaway(state):
 	#'''Значение бесконечности для оценочной функции'''
 	infinity = 100
-	players = {'W': ['W', 'WQ'], 'B': ['B', 'BQ'],}
+	players = {'W': ['W', 'WQ'], 'B': ['B', 'BQ']}
 	#'''противники'''
-	opponent = {"W":("B", "BQ"), "B":("W", "WQ")}
+	opponent = {'W':('B', 'BQ'), 'B':('W', 'WQ')}
 	def __init__(self, field):
 		#'''Конструктор класса, инициализация полей'''
 		self.value = field
@@ -31,11 +31,11 @@ class state_giveaway(state):
 
 	def is_win(self, player):
 		#'''Проверка, что игрок player выиграл'''
-		opp = player[0]
+		opp = self.opponent[player]
 		enemyFigures = 0
 		for lines in self.value:
 			for row in lines:
-				if(row == opp):
+				if(row in opp):
 					enemyFigures += 1
 		if enemyFigures == 0:
 			return True
@@ -70,7 +70,7 @@ class state_giveaway(state):
 	def append_common_move(self, moves, coord, player, a, b):
 		lines, row = coord
 		if(0 <= lines + a <= 7 and 0 <= row + b <= 7):
-			if (self.value[lines + a][row + b] not in self.players[player]):
+			if (self.value[lines + a][row + b] != player):
 				move = []
 				move.append(((lines, row), player,'0'))
 				move.append(((lines+a, row+b), '0', player))
@@ -84,7 +84,7 @@ class state_giveaway(state):
 			self.append_common_move(moves, coord, player, -1, 1)
 			self.append_common_move(moves, coord, player, -1, -1)
 				#или левом столбце
-		elif(player == 'B' or player == 'WQ' or player == 'BQ'):
+		if(player == 'B' or player == 'WQ' or player == 'BQ'):
 			self.append_common_move(moves, coord, player, 1, -1)
 			self.append_common_move(moves, coord, player, 1, 1)
 		return moves
@@ -92,7 +92,7 @@ class state_giveaway(state):
 	def get_moves(self, player):
 		# если ситуация выигрышная или проигрышная
 		# то ходов нет
-		if (self.is_win(player) or self.is_win(self.opponent[player])):
+		if (self.is_win(player) or self.is_win(self.opponent[player][0])):
 			return []
 		#получим список обязательных ходов для каждой шашки
 		#если есть обязательные ходы, то вернем их
@@ -123,10 +123,10 @@ class state_giveaway(state):
 			for lines in range(8):
 				for row in range(8):
 					if (self.value[lines][row] in self.players[player]):
-						if(self.commonMoves((lines, row), player) != []):
-							moves.extend(self.commonMoves((lines, row), player))
+						if(self.commonMoves((lines, row), self.value[lines][row]) != []):
+							moves.extend(self.commonMoves((lines, row), self.value[lines][row]))
 		return moves
 
 	def score(self, player):
-		#'''Расчет оценочной функции'''
+		'''Расчет оценочной функции'''
 		raise NotImplementedError

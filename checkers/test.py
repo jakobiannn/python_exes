@@ -11,13 +11,13 @@ from checkers import state_giveaway
 
 #     print(f"Best move is: ", move)
 global field
-field = [[0,"B",0,"B",0,"B",0,"B"],
-        ["B",0,"B",0,"B", 0,"B",0],
-        [0,"B",0,"B",0,"B",0,"B"],
+field = [[0,0,0,0,0,0,0,0],
+        [0,0,0,0,0, 0,0,0],
+        [0,0,0,0,0,0,0,0],
         [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        ["W",0,"W",0,"W",0,"W",0],
-        [0,"W",0,"W",0,"W",0,"W"],
+        [0, 0, 0, "BQ", 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0,0],
+        [0,0,0,0,0,0,0,0],
         ["W",0,"W",0,"W",0,"W",0]]
 game = state_giveaway(field)
-print(game.get_moves("W"))
+print(game.get_moves("B"))
