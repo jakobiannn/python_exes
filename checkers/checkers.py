@@ -1,7 +1,7 @@
 from base import state
 from copy import deepcopy
 
-class state_giveaway(state):
+class state_checkers(state):
 	#'''Значение бесконечности для оценочной функции'''
 	infinity = 100
 	players = {'W': ['W', 'WQ'], 'B': ['B', 'BQ']}
@@ -14,6 +14,7 @@ class state_giveaway(state):
 
 	def do_move(self, field, move):
 		result = deepcopy(field)
+		#Если шашка дошла до конца поля, то она становится дамкой
 		for(row, col), _, new_state in move:
 			if(row == 0 and new_state == "W"):
 				result[row][col] = "WQ"
@@ -27,7 +28,6 @@ class state_giveaway(state):
 	def undo_move(self, move):
 		for (row, col), cancel_state, _ in move:
 				self.value[row][col] = cancel_state
-		return self.value
 
 	def is_win(self, player):
 		#'''Проверка, что игрок player выиграл'''
@@ -41,24 +41,21 @@ class state_giveaway(state):
 			return True
 		return False
 
-	#вспомогательная функция для get_moves,
-	#проверим есть ли обязательные ходы и если их нет,
-	#то занесем все обычные
+	#вспомогательная функция для get_moves, добавляет ходы со взятием
+	#с каждой стороны от шашки
 	def append_move(self, field, moves, player, coord, a, b):
 		lines, row = coord
 		#проверим, существуют ли ячейки поля по диагонали
-		#ячейка должна как существовать, так и не являться съеденной
 		if(0 <= lines + 2*a <= 7 and 0 <= row + 2*b <= 7):
 			if(field[lines + a][row + b] in self.opponent[player]):
 				if((lines + a, row + b) not in moves):
-					#проверим, можно ли съесть шашку(существует ли дальше поле)
 						if(field[lines + 2*a][row + 2*b] == 0):
 							move = []
 							move.append(((lines, row), player, '0'))
 							move.append(((lines+a, row+b), (lines+a, row+b), '0'))
 							move.append(((lines+a*2, row+b*2), '0', player))
 							moves.append(move)
-
+	#добавляем ходы со взятием
 	def mustHaveMoves(self, field, coord, player):
 		moves = []
 		self.append_move(field, moves, player, coord, -1, -1)
@@ -66,7 +63,7 @@ class state_giveaway(state):
 		self.append_move(field, moves, player, coord, -1,  1)
 		self.append_move(field, moves, player, coord,  1,  1)
 		return moves
-
+	#проверка для обычных ходов без взятия
 	def append_common_move(self, moves, coord, player, a, b):
 		lines, row = coord
 		if(0 <= lines + a <= 7 and 0 <= row + b <= 7):
@@ -75,11 +72,11 @@ class state_giveaway(state):
 				move.append(((lines, row), player,'0'))
 				move.append(((lines+a, row+b), '0', player))
 				moves.append(move)
-
+	#добавляем обычные ходы без взятия, с учетом наличия дамок
 	def commonMoves(self, coord, player):
 		moves = []
-			#условие, что шашка не стоит в верхней строчке и левом/правом столбце
-			#аналогично для черных в нижней строчке и нижнем левом/правом
+		#условие, что шашка не стоит в верхней строчке и левом/правом столбце
+		#аналогично для черных в нижней строчке и нижнем левом/правом
 		if(player == 'W' or player == 'WQ' or player == 'BQ'):
 			self.append_common_move(moves, coord, player, -1, 1)
 			self.append_common_move(moves, coord, player, -1, -1)
@@ -159,5 +156,18 @@ class state_giveaway(state):
 		return len(self.get_moves(player))
 
 	def score(self, player):
-		'''Расчет оценочной функции'''
-		raise NotImplementedError
+		oppenent = self.opponent[player][0]
+        # если выиграл игрок, то +бесконечность
+		if self.is_win(player):
+			return self.infinity
+        # если игрок проиграл, то -бесконечность
+		elif self.is_win(oppenent):
+			return (-1)*self.infinity
+		else:
+		#сложим все очки из каждого праметра игровой ситуации
+		#и вернем их суммированное значение
+			eaten_dif = self.count_eaten(player) - self.count_eaten(oppenent)
+			queen_dif = self.queen(player) - self.queen(oppenent)
+			line_dif = self.zero_line(player) - self.zero_line(oppenent)
+			moves_dif = self.moves_value(player) - self.moves_value(oppenent)
+		return eaten_dif + queen_dif + line_dif + moves_dif
