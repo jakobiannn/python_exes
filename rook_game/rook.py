@@ -24,8 +24,7 @@ class state_rook(state):
 		self.y -= y
 
 	def is_win(self, player):
-		# для проверки достаточно, чтобы одна координата из осей была равна 8
-		if (self.x == self.y == 8):
+		if self.x == self.y == 8:
 			return True
 		return False
 
