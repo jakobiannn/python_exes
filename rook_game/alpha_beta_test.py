@@ -15,7 +15,7 @@ def calc_nodes(state, level, player, opponent):
 def test_play():
 	from rook import state_rook
 
-	s = state_rook()
+	s = state_rook('1')
 	level = 4
 	player, opponent = "1", "2"
 
@@ -24,20 +24,17 @@ def test_play():
 	step = 1
 	while not (s.is_win(player) or s.is_win(opponent)):
 		move, _ = bestmove(s, level, player, opponent)
-		if move == None:
-			print('finish... draw')
-			break
-		print(f'Step {step}: {move} (x: {s.x} y: {s.y}) Player: {player}')
-
+		# if move == None:
+		# 	print('finish... draw')
+		# 	break
 		s.do_move(move)
-
-		if s.is_win(player):
+		print(f'Step {step}: {move} (x: {s.x} y: {s.y}) Player: {player}')
+		if s.is_win(opponent):
 			print(f'Player {player} win!')
 			break
-
+			
 		step += 1
 		player, opponent = opponent, player
-
 	print('the end')
 
 if __name__ == "__main__":

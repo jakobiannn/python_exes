@@ -6,10 +6,11 @@ class state_rook(state):
 	players = ["1", "2"]
 	opponent = {"1": "2", "2": "1"}
 
-	def __init__(self):
-		print("Game is started!")
-		self.x = 1
-		self.y = 1
+	def __init__(self, player, x=1, y=1):
+		# print("Game is started!")
+		self.x = x
+		self.y = y
+		self.player = player
 
 	def do_move(self, move):
 		# для более простой отмены хода запишем в кортеж смещения по x и y и прибавим их к
@@ -17,14 +18,16 @@ class state_rook(state):
 		x, y = move
 		self.x += x
 		self.y += y
+		self.player = state_rook.opponent[self.player]
 
 	def undo_move(self, move):
 		x, y = move
 		self.x -= x
 		self.y -= y
+		self.player = state_rook.opponent[self.player]
 
 	def is_win(self, player):
-		if self.x == self.y == 8:
+		if self.x == self.y == 8 and self.player == player:
 			return True
 		return False
 
@@ -44,12 +47,12 @@ class state_rook(state):
 	#Будем оценивать отклонение фигуры от диагональной позиции
 	#т.к. нахождение на позиции (x,x) является выигрышной
 	def score(self, player):
-		oppenent = state_rook.opponent[player]
+		opponent = state_rook.opponent[player]
 		# если выиграл игрок, то +бесконечность
 		if self.is_win(player):
 			return state_rook.infinity
 		# если игрок проиграл, то -бесконечность
-		elif self.is_win(oppenent):
+		elif self.is_win(opponent):
 			return (-1) * state_rook.infinity
 		else:
-			return -abs(self.x - self.y)
+			return (-1) * abs(self.x - self.y)
