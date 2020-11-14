@@ -10,7 +10,6 @@ class state_checkers(state):
 	def __init__(self, field):
 		#'''Конструктор класса, инициализация полей'''
 		self.value = field
-		print('Game is started!')
 
 	def do_move(self, field, move):
 		result = deepcopy(field)
@@ -31,13 +30,12 @@ class state_checkers(state):
 
 	def is_win(self, player):
 		#'''Проверка, что игрок player выиграл'''
-		opp = self.opponent[player]
-		enemyFigures = 0
+		figures = 0
 		for lines in self.value:
 			for row in lines:
-				if(row in opp):
-					enemyFigures += 1
-		if enemyFigures == 0:
+				if(row in self.opponent[player]):
+					figures += 1
+		if figures == 0:
 			return True
 		return False
 
@@ -49,10 +47,10 @@ class state_checkers(state):
 		if(0 <= lines + 2*a <= 7 and 0 <= row + 2*b <= 7):
 			if(field[lines + a][row + b] in self.opponent[player]):
 				if((lines + a, row + b) not in moves):
-						if(field[lines + 2*a][row + 2*b] == 0):
+						if(field[lines + 2*a][row + 2*b] == '0'):
 							move = []
 							move.append(((lines, row), player, '0'))
-							move.append(((lines+a, row+b), (lines+a, row+b), '0'))
+							move.append(((lines+a, row+b), self.opponent[player][0], '0'))
 							move.append(((lines+a*2, row+b*2), '0', player))
 							moves.append(move)
 	#добавляем ходы со взятием
@@ -156,18 +154,18 @@ class state_checkers(state):
 		return len(self.get_moves(player))
 
 	def score(self, player):
-		oppenent = self.opponent[player][0]
-        # если выиграл игрок, то +бесконечность
+		opponent = self.opponent[player][0]
+		# если выиграл игрок, то +бесконечность
 		if self.is_win(player):
 			return self.infinity
-        # если игрок проиграл, то -бесконечность
-		elif self.is_win(oppenent):
+		# если игрок проиграл, то -бесконечность
+		elif self.is_win(opponent):
 			return (-1)*self.infinity
 		else:
 		#сложим все очки из каждого праметра игровой ситуации
 		#и вернем их суммированное значение
-			eaten_dif = self.count_eaten(player) - self.count_eaten(oppenent)
-			queen_dif = self.queen(player) - self.queen(oppenent)
-			line_dif = self.zero_line(player) - self.zero_line(oppenent)
-			moves_dif = self.moves_value(player) - self.moves_value(oppenent)
-		return eaten_dif + queen_dif + line_dif + moves_dif
+			eaten_dif = self.count_eaten(player) - self.count_eaten(opponent)
+			queen_dif = self.queen(player) - self.queen(opponent)
+			line_dif = self.zero_line(player) - self.zero_line(opponent)
+			moves_dif = self.moves_value(player) - self.moves_value(opponent)
+		return (-1) * eaten_dif + queen_dif + line_dif + moves_dif

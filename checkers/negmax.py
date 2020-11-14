@@ -1,13 +1,13 @@
-from rook import state_rook
+nodes = 0 # переменная для расчета статистики
 
-def alpha_beta(state, level, player, opponent, low, high, nodes):
-    ''' Алгоритм AlphaBeta-отсечения (на основе negmax)
+def negmax(state, level, player, opponent):
+    ''' Алгоритм поиска лучше хода NegMax
         - state - начальное состояние
         - level - максимальная глубина рекрсии (количество полуходов)
+        - original - исходный игрок, для которого считается
+                     дерево
         - player - текущий игрок
         - opponent - оппонент
-        - low - нижняя граница для отсечения
-        - high - верхняя граница для отсечения
     '''
 
     # инициализируем лучший ход и оценку
@@ -17,49 +17,35 @@ def alpha_beta(state, level, player, opponent, low, high, nodes):
     moves = state.get_moves(player)
 
     # накапливаем количество сгенерированных ходов
+    global nodes
     nodes += len(moves)
 
     # если достигнута максимальная глубина дерева
     # или ходов нет, то рассчитываем оценку
     # при помощи оценочной функции
     if level == 0 or moves == []:
-        return None, state.score(player), nodes
+        return None, state.score(player)
 
     # перебираем последовательно все возможные ходы
     for m in moves:
-        # выполняем ход
-        state.do_move(m)
-
+        state.value = state.do_move(state.value, m) # выполняем ход
         # вызываем рекурсивно NegMax,
         # уменьшая уровень на 1
         # и меняя местами игрока и оппонента
-        _, score, nodes = alpha_beta(state, level-1, opponent, player, -high, -low, nodes)
+        _, score = negmax(state, level-1, opponent, player)
+        state.undo_move(m) # отменяем ход
 
-        # отменяем ход
-        state.undo_move(m)
+        # меняем знак оценочной функции на противоположный
+        if best_score == None or (-1)*score > best_score:
+            best_move, best_score =  m, (-1)*score
 
-        # если текущий ход лучше best_score:
-        if best_score == None or -1*score > best_score:
-            # устанавливаем новое значение нижней границы
-            low = -1*score
-            # лучшим ходом считаем текущий
-            best_move, best_score =  m, -1*score
-
-        # если выполняется условие для AlphaBeta-отсечения
-        if low >= high:
-            return best_move, best_score, nodes
-
-    return best_move, best_score, nodes
+    return best_move, best_score
 
 def bestmove(state, level, player, opponent):
-    ''' Вызов функции AlphaBet с начальными значениями
+    ''' Вызов функции MiniMax с начальными значениями
         - state - начальное состояние
         - level - максимальная глубина рекрсии (количество полуходов)
         - player - игрок
         - opponent - оппонент
-        - low = -infinity
-        - high = +infinity
     '''
-    nodes = 0
-    return alpha_beta(state, level, player, opponent, \
-        -state_rook.infinity, state_rook.infinity, nodes)
+    return negmax(state, level, player, opponent)
