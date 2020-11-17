@@ -14,7 +14,7 @@ def a_search(initial, goal, evaluator):
         open_state_count -- count of elements in open states list
         close_state_count -- count of elements in close states list
     """
-    if initial == goal: # начальное состояние равно целевому
+    if goal(initial): # начальное состояние равно целевому
         return {'solved':True, 'path': [initial], 'openstates':1, 'closedstates':0}
 
     initial._depth = 0

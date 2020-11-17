@@ -3,8 +3,8 @@ from asearch import a_search
 from timeit import Timer
 
 initial = state_sudoku()
-def goal(state):
-    for row in state.table:
+def goal(initial):
+    for row in initial.table:
         for col in row:
             if col == 0:
                 return False
