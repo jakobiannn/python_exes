@@ -95,7 +95,7 @@ class state_sudoku:
         self.show()
         print("---------------------------")
 
-        while iterator < self.n ** 4 and difficult > 75:
+        while iterator < self.n ** 4:
             i, j = random.randrange(0, self.n * self.n, 1), random.randrange(0, self.n * self.n,
                                                                              1)  # Выбираем случайную ячейку
             if flook[i][j] == 0:  # Если её не смотрели
@@ -142,7 +142,7 @@ class state_sudoku:
             if num == line_num:
                 return False
         for row_num in range(9):
-            if self.table[row_num][row] == num:
+            if self.table[row_num][line] == num:
                 return False
         if not self.check_square(num, line, row):
             return False
