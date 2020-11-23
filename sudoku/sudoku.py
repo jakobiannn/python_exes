@@ -1,4 +1,6 @@
 import random
+from copy import deepcopy
+
 import solver
 from pip._vendor.urllib3.connectionpool import xrange
 
@@ -16,12 +18,6 @@ class state_sudoku:
 			print("The base table is ready!")
 
 	def __hash__(self):
-		"""Метод должен возвращать значение хэш-функции -
-			числа, которое будет уникальным образом
-			задавать состояние игры
-			(используется для того, чтобы можно было
-			использовать тип множество для объектов класса)
-		"""
 		hash = ""
 		for line in range(9):
 			for col in range(9):
@@ -161,18 +157,11 @@ class state_sudoku:
 				if self.table[line][row] == 0:
 					for num in range(1, 10):
 						if self.is_append((line, row), num):
-							new_table = self.table.copy()
+							new_table = deepcopy(self.table)
 							new_table[line][row] = num
 							moves.append(state_sudoku(new_table, self._depth+1))
 		return moves
 
-	def do_move(self, move):
-		row, col, num = move
-		self.table[row][col] = num
-
-	def undo_move(self, move):
-		row, col, num = move
-		self.table[row][col] = num
 
 # сумма незаполненных ячеек на поле
 def fair_evaluator(state, goal):

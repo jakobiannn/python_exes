@@ -12,7 +12,7 @@ def bfs(initial, goal):
     close_state_count -- count of elements in close states list
     """
     if goal(initial): # начальное состояние равно целевому
-        return (True, [], 0, 0)
+        return True, [], 0, 0
 
     # список открытых состояний
     initial._depth = 0
@@ -21,12 +21,11 @@ def bfs(initial, goal):
     # список закрытых состояний
     closed_states = []
 
-    while open_states != []:
+    while open_states:
         # извлекаем первый элемент из (очереди) списка открытых состояний
         current = open_states.pop(0)
         # добавляем его в закрытые
         closed_states.append(current)
-
         # генерируем список возможных ходов
         for m in current.get_moves():
             # get_moves() это делает, но вдруг забыли реализовать
@@ -42,6 +41,6 @@ def bfs(initial, goal):
                         path.append(s)
                         s = s.parent
                     path.reverse()
-                    return (True, path, len(open_states), len(closed_states))
+                    return True, path, len(open_states), len(closed_states)
                 open_states.append(m)
-    return (False, [], -1, -1) # нет решения, возвращаем пустой список
+    return False, [], -1, -1  # нет решения, возвращаем пустой список
