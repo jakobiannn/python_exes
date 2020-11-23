@@ -1,5 +1,6 @@
 from queue import PriorityQueue
 
+
 def a_search(initial, goal, evaluator):
     """A*search algorythm function
 
@@ -14,14 +15,14 @@ def a_search(initial, goal, evaluator):
         open_state_count -- count of elements in open states list
         close_state_count -- count of elements in close states list
     """
-    if goal(initial): # начальное состояние равно целевому
-        return {'solved':True, 'path': [initial], 'openstates':1, 'closedstates':0}
+    if goal(initial):  # начальное состояние равно целевому
+        return {'solved': True, 'path': [initial], 'openstates': 1, 'closedstates': 0}
 
     initial._depth = 0
 
     # список открытых состояний
     open_states = PriorityQueue()
-    open_states.put((evaluator(initial, goal), initial))
+    open_states.put((evaluator(initial), initial))
 
     # список закрытых состояний
     closed_states = set()
@@ -41,11 +42,11 @@ def a_search(initial, goal, evaluator):
                 item = item._parent
                 path.append(item)
             path.reverse()
-            return {'solved':True,
-                'path': path,
-                'openstates':len(open_states.queue),
-                'closedstates':len(closed_states)
-                }
+            return {'solved': True,
+                    'path': path,
+                    'openstates': len(open_states.queue),
+                    'closedstates': len(closed_states)
+                    }
 
         # генерируем список возможных ходов
         for move in current.get_moves():
@@ -61,11 +62,11 @@ def a_search(initial, goal, evaluator):
                 # но если не искать и не удалять, что мы просто потом
                 # извлекая очередное состояние из очереди будем видеть,
                 # что оно уже есть в закрытых
-                open_states.put((evaluator(move, goal) + move._depth, move))
+                open_states.put((evaluator(move) + move._depth, move))
 
     # нет решения, возвращаем пустой список
-    return {'solved':False,
-        'path': [],
-        'openstates':len(open_states.queue),
-        'closedstates':len(closed_states)
-        }
+    return {'solved': False,
+            'path': [],
+            'openstates': len(open_states.queue),
+            'closedstates': len(closed_states)
+            }

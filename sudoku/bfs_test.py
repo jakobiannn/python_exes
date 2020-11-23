@@ -5,12 +5,15 @@ from timeit import Timer
 count_state = state_sudoku()
 
 initial = count_state
+
+
 def goal(state):
     for row in state.table:
         for col in row:
             if col == 0:
                 return False
     return True
+
 
 print(initial)
 

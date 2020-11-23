@@ -3,13 +3,17 @@ from asearch import a_search
 from timeit import Timer
 
 initial = state_sudoku()
+
+
 def goal(initial):
     for row in initial.table:
         for col in row:
             if col == 0:
                 return False
     return True
-print('fair =', fair_evaluator(initial, goal))
+
+
+print('fair =', fair_evaluator(initial))
 # print('good =', good_evaluator(initial, goal))
 # print('weak =', weak_evaluator(initial, goal))
 # print('bad  =', bad_evaluator(initial, goal))
