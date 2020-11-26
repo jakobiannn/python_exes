@@ -18,7 +18,7 @@ def dfs(initial, goal, max_depth):
     # список открытых состояний
     initial.depth = 0
     open_states = [initial]
-    
+
     # список закрытых состояний
     closed_states = []
 
@@ -31,7 +31,7 @@ def dfs(initial, goal, max_depth):
         for m in current.get_moves():
             # если этот ход не в списке закрытых состояний
             if not m in closed_states:
-                if m == goal:
+                if goal(m):
                     print(m._depth)
                     # сформировать список ходов до текущего
                     path = [m]
@@ -39,7 +39,7 @@ def dfs(initial, goal, max_depth):
                     while s:
                         path.append(s)
                         s = s.parent
-                    path.reverse()                            
+                    path.reverse()
                     return (True, path, len(open_states), len(closed_states))
                 if current._depth <= max_depth:
                     open_states.append(m)

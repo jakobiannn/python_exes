@@ -14,14 +14,9 @@ def goal(initial):
 
 
 print('fair =', fair_evaluator(initial))
-# print('good =', good_evaluator(initial, goal))
-# print('weak =', weak_evaluator(initial, goal))
-# print('bad  =', bad_evaluator(initial, goal))
 
 f = lambda: a_search(initial, goal, fair_evaluator)
-# f = lambda: a_search(initial, goal, good_evaluator)
-# f = lambda: a_search(initial, goal, weak_evaluator)
-# f = lambda: a_search(initial, goal, bad_evaluator)
+
 
 res = f()
 print('has decision  :', res['solved'])

@@ -3,7 +3,29 @@ from copy import deepcopy
 
 import solver
 from pip._vendor.urllib3.connectionpool import xrange
+field = [
+[1, 2, 3, 7, 8, 9, 4, 5, 6],
+[4, 5, 6, 1, 2, 3, 7, 8, 9],
+[7, 8, 9, 4, 5, 6, 1, 2, 3],
+[2, 3, 4, 8, 9, 1, 5, 6, 7],
+[5, 6, 7, 2, 3, 4, 8, 9, 1],
+[8, 9, 1, 5, 6, 7, 2, 3, 4],
+[3, 4, 5, 9, 1, 2, 6, 7, 8],
+[6, 7, 8, 3, 4, 5, 9, 1, 2],
+[9, 1, 2, 6, 7, 8, 3, 4, 5]
+]
 
+zfield = [
+[1, 2, 3, 0, 8, 9, 4, 5, 6],
+[4, 5, 0, 1, 2, 0, 7, 8, 9],
+[7, 8, 9, 4, 5, 6, 1, 0, 3],
+[2, 3, 4, 0, 9, 0, 5, 6, 0],
+[5, 0, 7, 2, 3, 4, 8, 9, 1],
+[8, 9, 1, 5, 6, 7, 2, 3, 4],
+[3, 4, 5, 0, 1, 2, 0, 7, 8],
+[6, 7, 8, 3, 4, 5, 9, 1, 2],
+[9, 1, 2, 6, 7, 8, 0, 4, 5]
+]
 
 class state_sudoku:
 
@@ -80,14 +102,14 @@ class state_sudoku:
         state_sudoku.transposing(self)
 
     def generate_full_field(self, amt=10):
-        mix_func = ['self.transposing()',
+        '''mix_func = ['self.transposing()',
                     'self.swap_rows_small()',
                     'self.swap_colums_small()',
                     'self.swap_rows_area()',
                     'self.swap_colums_area()']
         for _ in xrange(1, amt):
             id_func = random.randrange(0, len(mix_func), 1)
-            eval(mix_func[id_func])
+            eval(mix_func[id_func])'''
         flook = [[0 for j in range(self.n * self.n)] for i in range(self.n * self.n)]
         iterator = 0
         difficult = self.n ** 4  # Первоначально все элементы на месте
@@ -95,7 +117,7 @@ class state_sudoku:
         self.show()
         print("---------------------------")
 
-        while iterator < self.n ** 4:
+        while iterator < self.n ** 4 and difficult > 78:
             i, j = random.randrange(0, self.n * self.n, 1), random.randrange(0, self.n * self.n,
                                                                              1)  # Выбираем случайную ячейку
             if flook[i][j] == 0:  # Если её не смотрели
@@ -137,26 +159,25 @@ class state_sudoku:
         return True
 
     def is_append(self, coord, num):
-        line, row = coord
-        for line_num in self.table[row]:
-            if num == line_num:
-                return False
+        row, col = coord
+        if num in self.table[row]:
+            return False
         for row_num in range(9):
-            if self.table[row_num][line] == num:
+            if self.table[row_num][col] == num:
                 return False
-        if not self.check_square(num, line, row):
+        if not self.check_square(num, row, col):
             return False
         return True
 
     def get_moves(self):
         moves = []
-        for line in range(9):
-            for row in range(9):
-                if self.table[line][row] == 0:
+        for row in range(9):
+            for col in range(9):
+                if self.table[row][col] == 0:
                     for num in range(1, 10):
-                        if self.is_append((line, row), num):
+                        if self.is_append((row, col), num):
                             new_table = deepcopy(self.table)
-                            new_table[line][row] = num
+                            new_table[row][col] = num
                             moves.append(state_sudoku(self, new_table, self._depth + 1))
         return moves
 
@@ -169,7 +190,3 @@ def fair_evaluator(state):
             if col == 0:
                 count += 1
     return count
-
-
-s = state_sudoku()
-print(len(s.get_moves()))

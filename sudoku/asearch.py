@@ -34,7 +34,7 @@ def a_search(initial, goal, evaluator):
         # добавляем его в закрытые
         closed_states.add(current)
 
-        if current == goal:
+        if goal(current):
             # сформировать список ходов до текущего
             item = current
             path = [item]
