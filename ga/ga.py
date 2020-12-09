@@ -13,11 +13,11 @@ class Species:
 		if nums:
 			self.x1, self.x2 = nums
 		else:
-			Species.MIN *= 1000
-			Species.MAX *= 1000
+			intMIN = Species.MIN * 1000
+			intMAX = Species.MAX * 1000
 
-			self.x1 = random.randint(Species.MIN, Species.MAX)
-			self.x2 = random.randint(Species.MIN, Species.MAX)
+			self.x1 = random.randint(intMIN, intMAX)
+			self.x2 = random.randint(intMIN, intMAX)
 
 			self.x1 /= 1000
 			self.x2 /= 1000
@@ -61,13 +61,15 @@ class Species:
 
 		pheno1 = t
 
+		t = 0
+		p = 1
 		for bit in gen2:
 				if bit == '1':
 					t += p
 				p *= 2
 
 		pheno2 = t
-		return ((Species.MIN + pheno1*(Species.MAX-Species.MIN) / Species.N) / 1000, (Species.MIN + pheno2*(Species.MAX-Species.MIN) / Species.N) / 1000)
+		return (((Species.MIN + pheno1*(Species.MAX-Species.MIN) / Species.N) / 1000), ((Species.MIN + pheno2*(Species.MAX-Species.MIN) / Species.N) / 1000))
 
 	def pheno(self):
 		return Species.get_pheno(self.gen1, self.gen2)
@@ -86,11 +88,13 @@ class Species:
 	# Функция мутации
 	def mutation(self):
 		if random.random() < Species.MUT_PROBABILITY:
-			mutation_index = random.randint(0, len(self.gen)-1)
-			new_gen1 = self.gen1[:mutation_index] + Species.inverse(self.gen1[mutation_index]) + self.gen1[mutation_index+1:]
-			new_gen2 = self.gen2[:mutation_index] + Species.inverse(self.gen2[mutation_index]) + self.gen2[mutation_index+1:]
+			mutation_index1 = random.randint(0, len(self.gen1)-1)
+			mutation_index2 = random.randint(0, len(self.gen2)-1)
 
-			new_species = Species(Species.get_pheno((new_gen1, new_gen2)))
+			new_gen1 = self.gen1[:mutation_index1] + Species.inverse(self.gen1[mutation_index1]) + self.gen1[mutation_index1+1:]
+			new_gen2 = self.gen2[:mutation_index2] + Species.inverse(self.gen2[mutation_index2]) + self.gen2[mutation_index2+1:]
+
+			new_species = Species(Species.get_pheno(new_gen1, new_gen2))
 			return new_species
 		else:
 			return None
@@ -101,16 +105,16 @@ class Population:
 	def __init__(self):
 		self.species = [Species() for _ in range(Population.SPC_COUNT+1)]
 
-	def max_fitness(self):
+	def min_fitness(self):
 		'''определение максимума функции приспособленности'''
-		return max([item.fitness() for item in self.species])
+		return min([item.fitness() for item in self.species])
 
 	def avg_fitness(self):
 		'''определение среднего функции приспособленности'''
 		return sum([item.fitness() for item in self.species]) / len(self.species)
 
 	def __str__(self):
-		return f"max = {self.max_fitness():.2f} avg = {self.avg_fitness():.2f}"
+		return f"min = {self.min_fitness():.2f} avg = {self.avg_fitness():.2f}"
 
 	def mutation(self):
 		'''добавление в популяцию особей с мутацией'''
@@ -123,22 +127,22 @@ class Population:
 
 	def selection(self):
 		self.species.sort(reverse=True) # сортируем популяцию b
-		self.species = self.species[:Population.SPC_COUNT+1] # отбираем только лучшие SPC_COUNT особей
+		self.species = self.species[Population.SPC_COUNT+1:] # отбираем только лучшие SPC_COUNT особей
 
 class Evolution:
 	def __init__(self, gen_count):
 		self.gen_count = gen_count
 		self.generation = None
 		self.population = None
-		self.max = []
+		self.min = []
 		self.avg = []
 
 	def add_statistic(self):
-		self.max.append(self.max_fitness())
+		self.min.append(self.min_fitness())
 		self.avg.append(self.avg_fitness())
 
 	def start(self):
-		self.max = []
+		self.min = []
 		self.avg = []
 		self.generation = 0
 		self.population = Population()
@@ -160,8 +164,8 @@ class Evolution:
 			self.next()
 			if debug: print(f"generation {self.generation}: {self.population}")
 
-	def max_fitness(self):
-		return self.population.max_fitness()
+	def min_fitness(self):
+		return self.population.min_fitness()
 
 	def avg_fitness(self):
 		return self.population.avg_fitness()
@@ -193,20 +197,21 @@ def test_picture():
 
 	x = np.arange(0, gen_count+1, 1)
 	y1 = np.array([int(elem) for elem in e.avg])
-	y2 = np.array([int(elem) for elem in e.max])
+	y2 = np.array([int(elem) for elem in e.min])
 
 	plt.title('Fitness')
 	plt.plot(x, y1, 'r', x, y2, 'g')
 	plt.xlabel("generations")
 	plt.ylabel("fitness")
 	plt.title("Fitness(generation number)")
-	plt.legend(['AVG fitness', 'MAX fitness'])
+	plt.legend(['AVG fitness', 'MIN fitness'])
 	plt.grid()
 	plt.show()
 
 if __name__ == "__main__":
-	test_function()
+	#test_function()
 	test_runonce()
-	test_picture()
+	#test_picture()
 # s = Species()
-# print(s.gen1, s.gen2)
+# print(s.x1, s.x2)
+# print(s.get_pheno(s.gen1, s.gen2))
